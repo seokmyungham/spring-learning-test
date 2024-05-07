@@ -10,8 +10,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Map;
-
 @RestController
 public class SessionLoginController {
     private static final String SESSION_KEY = "USER";
@@ -36,13 +34,15 @@ public class SessionLoginController {
     @PostMapping("/login/session")
     public ResponseEntity<Void> sessionLogin(HttpServletRequest request, HttpSession session) {
         // TODO: HttpRequest로 받은 email과 password 추출
-        String email = "";
-        String password = "";
+
+        String email = request.getParameter(USERNAME_FIELD);
+        String password = request.getParameter(PASSWORD_FIELD);
 
         if (authService.checkInvalidLogin(email, password)) {
             throw new AuthorizationException();
         }
 
+        session.setAttribute(SESSION_KEY, email);
         // TODO: Session에 인증 정보 저장 (key: SESSION_KEY, value: email값)
 
         return ResponseEntity.ok().build();
@@ -58,7 +58,7 @@ public class SessionLoginController {
     @GetMapping("/members/me/session")
     public ResponseEntity<MemberResponse> findMyInfo(HttpSession session) {
         // TODO: Session을 통해 인증 정보 조회 (key: SESSION_KEY)
-        String email = "";
+        String email = (String) session.getAttribute(SESSION_KEY);
         MemberResponse member = authService.findMember(email);
         return ResponseEntity.ok().body(member);
     }
